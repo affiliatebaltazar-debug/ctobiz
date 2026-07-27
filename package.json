@@ -1,0 +1,8 @@
+{
+  "name": "base44",
+  "private": true,
+  "workspaces": [
+    "packages/core",
+    "packages/ai-growth-command-center"
+  ]
+}
