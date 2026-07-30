@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 *.db
+*.db-*
 *.sqlite
 .DS_Store
 bun.lock
