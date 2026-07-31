@@ -136,6 +136,17 @@ const createTableStatements = [
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
+  `CREATE TABLE IF NOT EXISTS agent_tasks (
+    id TEXT PRIMARY KEY,
+    agent_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    task TEXT NOT NULL,
+    context TEXT,
+    result TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
   `CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -149,5 +160,5 @@ for (const sql of createTableStatements) {
   sqlite.exec(sql);
 }
 
-console.log("✅ Database migrated successfully — 11 tables created");
+console.log("✅ Database migrated successfully — 12 tables created");
 sqlite.close();
