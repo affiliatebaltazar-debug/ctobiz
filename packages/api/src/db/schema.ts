@@ -165,6 +165,23 @@ export const apiKeys = sqliteTable("api_keys", {
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });
 
+// ── Agent Tasks ──
+export const agentTasks = sqliteTable("agent_tasks", {
+  id: text("id").primaryKey(),
+  agentId: text("agent_id").notNull(),
+  userId: text("user_id").notNull(),
+  task: text("task").notNull(),
+  context: text("context"),
+  result: text("result"),
+  status: text("status", {
+    enum: ["pending", "running", "completed", "failed"],
+  })
+    .notNull()
+    .default("pending"),
+  createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
+  updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
+});
+
 // ── Sessions ──
 export const sessions = sqliteTable("sessions", {
   id: text("id").primaryKey(),

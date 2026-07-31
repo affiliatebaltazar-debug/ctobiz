@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import { db, schema } from "../db";
 import { aiAgents as agentDefinitions } from "../data/agents";
 import { eq } from "drizzle-orm";
+import { chat, getModel } from "../services/ai";
+import { getAgentPrompt } from "../services/prompts";
 
 const agentsRoute = new Hono();
 
@@ -57,25 +59,85 @@ agentsRoute.get("/:id", (c) => {
   }
 });
 
-// POST /:id/run — trigger an agent run (placeholder)
-agentsRoute.post("/:id/run", (c) => {
+// POST /:id/run — trigger an agent run with AI
+agentsRoute.post("/:id/run", async (c) => {
   const id = c.req.param("id");
   const def = agentDefinitions.find((a) => a.id === id);
 
   if (!def) {
-    return c.json({ error: "Agent not found" }, 404);
+    return c.json({ error: "Agent nije pronađen" }, 404);
+  }
+
+  let body: { task?: string };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "Neispravno JSON tijelo — pošalji { task: '...' }" }, 400);
+  }
+
+  if (!body.task || typeof body.task !== "string") {
+    return c.json({ error: "Nedostaje polje 'task' u tijelu zahtjeva" }, 400);
   }
 
   const taskId = `task-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-  return c.json({
-    taskId,
-    agentId: id,
-    agentName: def.name,
-    status: "queued",
-    message: `Agent "${def.name}" has been queued for execution.`,
-    timestamp: new Date().toISOString(),
-  });
+  // Insert pending task record
+  try {
+    db.insert(schema.agentTasks).values({
+      id: taskId,
+      agentId: id,
+      userId: "anonymous",
+      task: body.task,
+      status: "running",
+    }).run();
+  } catch {
+    // DB write is best-effort for now; continue with AI call
+  }
+
+  try {
+    const systemPrompt = getAgentPrompt(def.id, def.category);
+    const result = await chat(systemPrompt, body.task);
+
+    // Update task record with result
+    try {
+      db.update(schema.agentTasks)
+        .set({ result, status: "completed", updatedAt: new Date().toISOString() })
+        .where(eq(schema.agentTasks.id, taskId))
+        .run();
+    } catch {
+      // best-effort
+    }
+
+    return c.json({
+      taskId,
+      agentId: id,
+      agentName: def.name,
+      result,
+      model: getModel(),
+      status: "completed",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err: any) {
+    const errorMessage = err?.message || "Nepoznata greška";
+
+    // Update task record with error
+    try {
+      db.update(schema.agentTasks)
+        .set({ result: errorMessage, status: "failed", updatedAt: new Date().toISOString() })
+        .where(eq(schema.agentTasks.id, taskId))
+        .run();
+    } catch {
+      // best-effort
+    }
+
+    return c.json({
+      taskId,
+      agentId: id,
+      error: errorMessage,
+      status: "failed",
+      timestamp: new Date().toISOString(),
+    }, errorMessage.includes("AI_API_KEY") ? 503 : 500);
+  }
 });
 
 export default agentsRoute;
