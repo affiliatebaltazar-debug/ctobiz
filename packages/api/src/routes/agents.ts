@@ -4,6 +4,8 @@ import { aiAgents as agentDefinitions } from "../data/agents";
 import { eq } from "drizzle-orm";
 import { chat, getModel } from "../services/ai";
 import { getAgentPrompt } from "../services/prompts";
+import { authMiddleware, type AuthUser } from "../middleware/auth";
+import { checkAgentAccess } from "../middleware/tiers";
 
 const agentsRoute = new Hono();
 
@@ -60,8 +62,10 @@ agentsRoute.get("/:id", (c) => {
 });
 
 // POST /:id/run — trigger an agent run with AI
-agentsRoute.post("/:id/run", async (c) => {
-  const id = c.req.param("id");
+// Auth required; agents outside the user's tier are rejected (403).
+agentsRoute.post("/:id/run", authMiddleware, checkAgentAccess, async (c) => {
+  const user = c.get("user") as AuthUser;
+  const id = c.req.param("id") ?? "";
   const def = agentDefinitions.find((a) => a.id === id);
 
   if (!def) {
@@ -86,7 +90,7 @@ agentsRoute.post("/:id/run", async (c) => {
     db.insert(schema.agentTasks).values({
       id: taskId,
       agentId: id,
-      userId: "anonymous",
+      userId: user.id,
       task: body.task,
       status: "running",
     }).run();

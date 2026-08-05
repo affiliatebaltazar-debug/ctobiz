@@ -1,8 +1,12 @@
 import { Hono } from "hono";
+import { db, schema } from "../db";
+import { eq } from "drizzle-orm";
+import { authMiddleware, type AuthUser } from "../middleware/auth";
+import { checkCampaignLimit } from "../middleware/tiers";
 
 const campaignsRoute = new Hono();
 
-// Mock campaign data
+// Mock campaign data (fallback when the DB is empty)
 const mockCampaigns = [
   {
     id: "camp-001",
@@ -45,9 +49,39 @@ const mockCampaigns = [
   },
 ];
 
-// GET / — list all campaigns
+/** Serializes a DB row to the API shape. */
+function toApiCampaign(row: typeof schema.marketingCampaigns.$inferSelect) {
+  return {
+    id: row.id,
+    name: row.name,
+    platform: row.platform,
+    objective: row.objective,
+    budget: row.budget,
+    targetAudience: row.targetAudience ? JSON.parse(row.targetAudience) : null,
+    keywords: row.keywords ? JSON.parse(row.keywords) : [],
+    status: row.status,
+    results: row.results ? JSON.parse(row.results) : null,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+// GET / — list all campaigns (DB first, mock fallback)
 campaignsRoute.get("/", (c) => {
   const status = c.req.query("status");
+
+  try {
+    const rows = status
+      ? db.select().from(schema.marketingCampaigns).where(eq(schema.marketingCampaigns.status, status as any)).all()
+      : db.select().from(schema.marketingCampaigns).all();
+
+    if (rows.length > 0) {
+      return c.json({ campaigns: rows.map(toApiCampaign), total: rows.length });
+    }
+  } catch {
+    // DB empty or unavailable — fall back to mock data
+  }
+
   let filtered = mockCampaigns;
   if (status) {
     filtered = mockCampaigns.filter((c) => c.status === status);
@@ -55,28 +89,64 @@ campaignsRoute.get("/", (c) => {
   return c.json({ campaigns: filtered, total: filtered.length });
 });
 
-// POST / — create campaign
-campaignsRoute.post("/", async (c) => {
+// POST / — create campaign (auth required; tier campaign limit enforced)
+campaignsRoute.post("/", authMiddleware, checkCampaignLimit, async (c) => {
+  const user = c.get("user") as AuthUser;
   const body = await c.req.json();
-  const newCampaign = {
-    id: `camp-${Date.now()}`,
+
+  const id = `camp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const now = new Date().toISOString();
+
+  const campaign = {
+    id,
     name: body.name || "Nova kampanja",
     platform: body.platform || "Facebook",
     objective: body.objective || "Prodaja",
     budget: body.budget || 0,
-    targetAudience: body.targetAudience || null,
-    keywords: body.keywords || [],
-    status: "draft",
+    targetAudience: body.targetAudience ? JSON.stringify(body.targetAudience) : null,
+    keywords: body.keywords ? JSON.stringify(body.keywords) : null,
+    status: "draft" as const,
     results: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: now,
+    updatedAt: now,
   };
-  return c.json(newCampaign, 201);
+
+  try {
+    db.insert(schema.marketingCampaigns).values(campaign).run();
+  } catch (err) {
+    console.error("Insert campaign error:", err);
+  }
+
+  return c.json(
+    {
+      id,
+      name: campaign.name,
+      platform: campaign.platform,
+      objective: campaign.objective,
+      budget: campaign.budget,
+      targetAudience: body.targetAudience || null,
+      keywords: body.keywords || [],
+      status: "draft",
+      results: null,
+      createdAt: now,
+      updatedAt: now,
+      createdBy: user.id,
+    },
+    201,
+  );
 });
 
 // GET /:id — get campaign details
 campaignsRoute.get("/:id", (c) => {
   const id = c.req.param("id");
+
+  try {
+    const row = db.select().from(schema.marketingCampaigns).where(eq(schema.marketingCampaigns.id, id)).get();
+    if (row) return c.json(toApiCampaign(row));
+  } catch {
+    // fall through to mock
+  }
+
   const campaign = mockCampaigns.find((c) => c.id === id);
   if (!campaign) {
     return c.json({ error: "Campaign not found" }, 404);

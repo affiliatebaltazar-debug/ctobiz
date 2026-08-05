@@ -147,6 +147,18 @@ export const users = sqliteTable("users", {
   role: text("role", { enum: ["admin", "member"] })
     .notNull()
     .default("admin"),
+  // ── Subscription / billing ──
+  tier: text("tier", { enum: ["starter", "pro", "agency"] })
+    .notNull()
+    .default("starter"),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  subscriptionStatus: text("subscription_status", {
+    enum: ["inactive", "active", "past_due", "canceled"],
+  })
+    .notNull()
+    .default("inactive"),
+  subscriptionCurrentPeriodEnd: text("subscription_current_period_end"),
   createdAt: text("created_at").notNull().default("CURRENT_TIMESTAMP"),
   updatedAt: text("updated_at").notNull().default("CURRENT_TIMESTAMP"),
 });

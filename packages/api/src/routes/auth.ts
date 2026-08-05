@@ -233,7 +233,7 @@ authRoute.get("/api-keys", authMiddleware, (c) => {
 authRoute.delete("/api-keys/:id", authMiddleware, (c) => {
   try {
     const user = c.get("user") as AuthUser;
-    const keyId = c.req.param("id");
+    const keyId = c.req.param("id") ?? "";
 
     // Verify the key belongs to the user
     const key = sqlite
