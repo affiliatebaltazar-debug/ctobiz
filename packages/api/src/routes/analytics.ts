@@ -1,4 +1,6 @@
 import { Hono } from "hono";
+import { authMiddleware } from "../middleware/auth";
+import { requireTier } from "../middleware/tiers";
 
 const analyticsRoute = new Hono();
 
@@ -60,6 +62,45 @@ analyticsRoute.get("/overview", (c) => {
         message: "Google Ads kampanja optimizirana — CTR +15%",
         timestamp: new Date(Date.now() - 18000000).toISOString(),
       },
+    ],
+  });
+});
+
+// GET /advanced — advanced analytics (Pro & Agency only)
+analyticsRoute.get("/advanced", authMiddleware, requireTier("pro", "agency"), (c) => {
+  return c.json({
+    level: "advanced",
+    // Funnel analysis
+    funnel: {
+      impressions: 284200,
+      clicks: 9180,
+      leads: 1247,
+      conversions: 389,
+      conversionRateByStage: [
+        { stage: "Pregledi", value: 284200, rate: 100 },
+        { stage: "Klikovi", value: 9180, rate: 3.2 },
+        { stage: "Leadovi", value: 1247, rate: 13.6 },
+        { stage: "Konverzije", value: 389, rate: 31.2 },
+      ],
+    },
+    // ROAS by channel
+    roasByChannel: [
+      { channel: "Google Ads", spend: 8400, revenue: 27600, roas: 3.3 },
+      { channel: "Facebook", spend: 5200, revenue: 14800, roas: 2.8 },
+      { channel: "Instagram", spend: 4600, revenue: 12900, roas: 2.8 },
+      { channel: "TikTok", spend: 2900, revenue: 6800, roas: 2.3 },
+    ],
+    // Cohort retention
+    cohortRetention: [
+      { cohort: "Siječanj", month1: 62, month2: 48, month3: 41 },
+      { cohort: "Veljača", month1: 65, month2: 52, month3: 44 },
+      { cohort: "Ožujak", month1: 61, month2: 47, month3: null },
+    ],
+    // Cost per acquisition trend
+    cpaTrend: [
+      { month: "Svi", cpa: 21.6 },
+      { month: "Lip", cpa: 19.4 },
+      { month: "Srp", cpa: 18.2 },
     ],
   });
 });

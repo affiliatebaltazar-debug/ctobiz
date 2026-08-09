@@ -57,10 +57,12 @@ leadsRoute.get("/", (c) => {
   try {
     let dbLeads;
     if (status) {
+      const validStatuses = ["new", "contacted", "qualified", "converted", "rejected"];
+      const leadStatus = validStatuses.includes(status) ? status : "new";
       dbLeads = db
         .select()
         .from(schema.leads)
-        .where(eq(schema.leads.status, status))
+        .where(eq(schema.leads.status, leadStatus as "new" | "contacted" | "qualified" | "converted" | "rejected"))
         .all();
     } else {
       dbLeads = db.select().from(schema.leads).all();
@@ -93,7 +95,7 @@ leadsRoute.post("/", async (c) => {
     problem: body.problem || null,
     offer: body.offer || null,
     priority: body.priority || "medium",
-    status: "new",
+    status: "new" as const,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

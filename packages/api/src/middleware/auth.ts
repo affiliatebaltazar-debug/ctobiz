@@ -161,3 +161,13 @@ export async function deleteSession(token: string): Promise<void> {
   const tokenHash = await hashToken(token);
   sqlite.query("DELETE FROM sessions WHERE token_hash = ?").run(tokenHash);
 }
+
+// ── Hono context variable typing ──
+// Augment Hono's ContextVariableMap so `c.get("user")` / `c.set("user")`
+// are typed project-wide (no per-route generics needed).
+declare module "hono" {
+  interface ContextVariableMap {
+    user: AuthUser;
+    userTier: string;
+  }
+}

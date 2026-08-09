@@ -6,6 +6,7 @@ import leadsRoute from "./routes/leads";
 import analyticsRoute from "./routes/analytics";
 import healthRoute from "./routes/health";
 import authRoute from "./routes/auth";
+import billingRoute from "./routes/billing";
 
 const app = new Hono();
 
@@ -29,6 +30,7 @@ v1.route("/campaigns", campaignsRoute);
 v1.route("/leads", leadsRoute);
 v1.route("/analytics", analyticsRoute);
 v1.route("/health", healthRoute);
+v1.route("/billing", billingRoute);
 
 app.route("/api/v1", v1);
 
@@ -55,6 +57,10 @@ app.get("/", (c) => {
       "GET  /api/v1/leads",
       "POST /api/v1/leads",
       "GET  /api/v1/analytics/overview",
+      "GET  /api/v1/analytics/advanced",
+      "POST /api/v1/billing/checkout",
+      "GET  /api/v1/billing/subscription",
+      "POST /api/v1/billing/webhook",
     ],
   });
 });

@@ -123,6 +123,11 @@ const createTableStatements = [
     name TEXT NOT NULL,
     organization_name TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'admin',
+    tier TEXT NOT NULL DEFAULT 'starter',
+    stripe_customer_id TEXT,
+    stripe_subscription_id TEXT,
+    subscription_status TEXT NOT NULL DEFAULT 'inactive',
+    subscription_current_period_end TEXT,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
@@ -159,6 +164,23 @@ const createTableStatements = [
 for (const sql of createTableStatements) {
   sqlite.exec(sql);
 }
+
+// ── Idempotent column migration for existing databases ──
+// CREATE TABLE IF NOT EXISTS never alters existing tables, so add the
+// subscription columns with guarded ALTER TABLE statements.
+function ensureColumn(table: string, column: string, definition: string) {
+  const columns = sqlite.query(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (!columns.some((c) => c.name === column)) {
+    sqlite.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    console.log(`  + added column ${table}.${column}`);
+  }
+}
+
+ensureColumn("users", "tier", "TEXT NOT NULL DEFAULT 'starter'");
+ensureColumn("users", "stripe_customer_id", "TEXT");
+ensureColumn("users", "stripe_subscription_id", "TEXT");
+ensureColumn("users", "subscription_status", "TEXT NOT NULL DEFAULT 'inactive'");
+ensureColumn("users", "subscription_current_period_end", "TEXT");
 
 console.log("✅ Database migrated successfully — 12 tables created");
 sqlite.close();
