@@ -70,6 +70,90 @@ const createTableStatements = [
     offer TEXT,
     priority TEXT NOT NULL DEFAULT 'medium',
     status TEXT NOT NULL DEFAULT 'new',
+    website TEXT,
+    industry TEXT,
+    company_size TEXT,
+    country TEXT,
+    city TEXT,
+    address TEXT,
+    description TEXT,
+    tags TEXT,
+    score INTEGER DEFAULT 0,
+    last_enriched_at TEXT,
+    data_freshness TEXT NOT NULL DEFAULT 'stale',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS lead_contacts (
+    id TEXT PRIMARY KEY,
+    lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    value TEXT NOT NULL,
+    label TEXT NOT NULL DEFAULT 'general',
+    source TEXT NOT NULL DEFAULT 'unknown',
+    verification_status TEXT NOT NULL DEFAULT 'unverified',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS lead_social_profiles (
+    id TEXT PRIMARY KEY,
+    lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+    platform TEXT NOT NULL,
+    url TEXT,
+    username TEXT,
+    followers INTEGER,
+    following INTEGER,
+    posts INTEGER,
+    recent_activity TEXT,
+    verification_status TEXT NOT NULL DEFAULT 'unverified',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS lead_people (
+    id TEXT PRIMARY KEY,
+    lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    position TEXT,
+    email TEXT,
+    phone TEXT,
+    linkedin TEXT,
+    source TEXT NOT NULL DEFAULT 'unknown',
+    verification_status TEXT NOT NULL DEFAULT 'unverified',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS lead_opportunities (
+    id TEXT PRIMARY KEY,
+    lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+    service TEXT NOT NULL,
+    why TEXT NOT NULL,
+    confidence TEXT NOT NULL DEFAULT 'medium',
+    status TEXT NOT NULL DEFAULT 'identified',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS lead_timeline (
+    id TEXT PRIMARY KEY,
+    lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+    event_type TEXT NOT NULL,
+    description TEXT,
+    actor TEXT NOT NULL DEFAULT 'system',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS lead_notes (
+    id TEXT PRIMARY KEY,
+    lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+    user_id TEXT,
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS lead_audit (
+    id TEXT PRIMARY KEY,
+    lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+    audit_type TEXT NOT NULL,
+    data TEXT,
+    score INTEGER DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )`,
@@ -182,5 +266,21 @@ ensureColumn("users", "stripe_subscription_id", "TEXT");
 ensureColumn("users", "subscription_status", "TEXT NOT NULL DEFAULT 'inactive'");
 ensureColumn("users", "subscription_current_period_end", "TEXT");
 
-console.log("✅ Database migrated successfully — 12 tables created");
+// ── Idempotent column migration for the expanded `leads` table ──
+// Existing databases created a `leads` table without the enrichment columns.
+// CREATE TABLE IF NOT EXISTS is a no-op on existing tables, so add the new
+// columns with guarded ALTER TABLE statements.
+ensureColumn("leads", "website", "TEXT");
+ensureColumn("leads", "industry", "TEXT");
+ensureColumn("leads", "company_size", "TEXT");
+ensureColumn("leads", "country", "TEXT");
+ensureColumn("leads", "city", "TEXT");
+ensureColumn("leads", "address", "TEXT");
+ensureColumn("leads", "description", "TEXT");
+ensureColumn("leads", "tags", "TEXT");
+ensureColumn("leads", "score", "INTEGER DEFAULT 0");
+ensureColumn("leads", "last_enriched_at", "TEXT");
+ensureColumn("leads", "data_freshness", "TEXT NOT NULL DEFAULT 'stale'");
+
+console.log("✅ Database migrated successfully — 20 tables created");
 sqlite.close();
