@@ -1,10 +1,10 @@
 import { GlassCard } from '@base44/core';
 import { useState } from 'react';
 import {
-  Plug, Check, ExternalLink, Clock, Settings2, Unlink,
-  Bot, Brain, Cpu, Network, Wifi, Globe,
+  Plug, Check, Clock, Settings2, Unlink,
+  Bot, Brain, Cpu, Network, Globe,
   MessageCircle, Video, Camera, Search, TrendingUp,
-  BarChart3, FileSearch, Database, Cloud,
+  BarChart3, Database, Cloud,
   Mail, Send, Layers, Workflow, Zap, Link2,
 } from 'lucide-react';
 
@@ -33,44 +33,46 @@ const categories: { name: string; icon: typeof Bot; color: string }[] = [
 ];
 
 // ── Integration data ──
+// Sve integracije na početku su NEPOVEZANE — ništa nije stvarno spojeno.
+// Status se mijenja tek nakon što korisnik stvarno poveže API konektor.
 const integrations: Integration[] = [
   // AI Provideri
-  { id: 'int-1', name: 'OpenAI', category: 'AI Provideri', status: 'connected', icon: Bot, iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/20', lastSync: 'Prije 5 minuta', description: 'GPT-4o, GPT-4o-mini — AI modeli za generiranje sadržaja, analitiku i optimizaciju' },
-  { id: 'int-2', name: 'Google Gemini', category: 'AI Provideri', status: 'connected', icon: Brain, iconColor: 'text-brand-blue-400', iconBg: 'bg-brand-blue-500/20', lastSync: 'Prije 10 minuta', description: 'Gemini Pro modeli — napredna multimodalna AI obrada za slike i tekst' },
-  { id: 'int-3', name: 'Groq', category: 'AI Provideri', status: 'connected', icon: Cpu, iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', lastSync: 'Prije 3 minute', description: 'Ultra-brza AI inferencija — Llama modeli na Groq infrastrukturi' },
-  { id: 'int-4', name: 'OpenRouter', category: 'AI Provideri', status: 'disconnected', icon: Network, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', lastSync: undefined, description: 'Pristup preko 200 AI modela kroz jedan API — Claude, Llama, Mixtral i drugi' },
+  { id: 'int-1', name: 'OpenAI', category: 'AI Provideri', status: 'disconnected', icon: Bot, iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/20', description: 'GPT modeli — AI modeli za generiranje sadržaja, analitiku i optimizaciju' },
+  { id: 'int-2', name: 'Google Gemini', category: 'AI Provideri', status: 'disconnected', icon: Brain, iconColor: 'text-brand-blue-400', iconBg: 'bg-brand-blue-500/20', description: 'Gemini modeli — napredna multimodalna AI obrada za slike i tekst' },
+  { id: 'int-3', name: 'Groq', category: 'AI Provideri', status: 'disconnected', icon: Cpu, iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', description: 'Ultra-brza AI inferencija — Llama modeli na Groq infrastrukturi' },
+  { id: 'int-4', name: 'OpenRouter', category: 'AI Provideri', status: 'disconnected', icon: Network, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', description: 'Pristup preko 200 AI modela kroz jedan API — Claude, Llama, Mixtral i drugi' },
 
   // Društvene mreže
-  { id: 'int-5', name: 'Facebook', category: 'Društvene mreže', status: 'connected', icon: Globe, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/20', lastSync: 'Prije 2 minute', description: 'Facebook Pages, Ads i Insights API — objavljivanje, oglašavanje i analitika' },
-  { id: 'int-6', name: 'Instagram', category: 'Društvene mreže', status: 'connected', icon: Camera, iconColor: 'text-pink-400', iconBg: 'bg-pink-500/20', lastSync: 'Prije 2 minute', description: 'Instagram Graph API — objave, priče, reelovi i Instagram oglasi' },
-  { id: 'int-7', name: 'TikTok', category: 'Društvene mreže', status: 'disconnected', icon: Video, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', lastSync: undefined, description: 'TikTok for Business API — video sadržaj, oglasi i analitika publike' },
-  { id: 'int-8', name: 'X (Twitter)', category: 'Društvene mreže', status: 'connected', icon: Globe, iconColor: 'text-zinc-300', iconBg: 'bg-zinc-600/30', lastSync: 'Prije 5 minuta', description: 'X API v2 — objave, analitika, praćenje trendova i angažmana' },
-  { id: 'int-9', name: 'Reddit', category: 'Društvene mreže', status: 'disconnected', icon: MessageCircle, iconColor: 'text-orange-400', iconBg: 'bg-orange-500/20', lastSync: undefined, description: 'Reddit API — praćenje subreddita, analiza sentimenta, lead discovery' },
-  { id: 'int-10', name: 'YouTube', category: 'Društvene mreže', status: 'connected', icon: Video, iconColor: 'text-red-400', iconBg: 'bg-red-500/20', lastSync: 'Prije 8 minuta', description: 'YouTube Data API v3 — video analitika, komentari, optimizacija SEO naslova' },
+  { id: 'int-5', name: 'Facebook', category: 'Društvene mreže', status: 'disconnected', icon: Globe, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/20', description: 'Facebook Pages, Ads i Insights API — objavljivanje, oglašavanje i analitika' },
+  { id: 'int-6', name: 'Instagram', category: 'Društvene mreže', status: 'disconnected', icon: Camera, iconColor: 'text-pink-400', iconBg: 'bg-pink-500/20', description: 'Instagram Graph API — objave, priče, reelovi i Instagram oglasi' },
+  { id: 'int-7', name: 'TikTok', category: 'Društvene mreže', status: 'disconnected', icon: Video, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', description: 'TikTok for Business API — video sadržaj, oglasi i analitika publike' },
+  { id: 'int-8', name: 'X (Twitter)', category: 'Društvene mreže', status: 'disconnected', icon: Globe, iconColor: 'text-zinc-300', iconBg: 'bg-zinc-600/30', description: 'X API v2 — objave, analitika, praćenje trendova i angažmana' },
+  { id: 'int-9', name: 'Reddit', category: 'Društvene mreže', status: 'disconnected', icon: MessageCircle, iconColor: 'text-orange-400', iconBg: 'bg-orange-500/20', description: 'Reddit API — praćenje subreddita, analiza sentimenta, lead discovery' },
+  { id: 'int-10', name: 'YouTube', category: 'Društvene mreže', status: 'disconnected', icon: Video, iconColor: 'text-red-400', iconBg: 'bg-red-500/20', description: 'YouTube Data API v3 — video analitika, komentari, optimizacija SEO naslova' },
 
   // Marketing
-  { id: 'int-11', name: 'Google Ads', category: 'Marketing', status: 'connected', icon: TrendingUp, iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', lastSync: 'Prije 1 minute', description: 'Google Ads API — upravljanje kampanjama, ključnim riječima i budžetima' },
-  { id: 'int-12', name: 'Google Analytics', category: 'Marketing', status: 'connected', icon: BarChart3, iconColor: 'text-orange-400', iconBg: 'bg-orange-500/20', lastSync: 'Prije 1 minute', description: 'Google Analytics 4 — promet, konverzije, atribucija i ponašanje korisnika' },
-  { id: 'int-13', name: 'Google Search Console', category: 'Marketing', status: 'connected', icon: Search, iconColor: 'text-brand-blue-400', iconBg: 'bg-brand-blue-500/20', lastSync: 'Prije 30 minuta', description: 'Search Console API — pozicije ključnih riječi, CTR, indeksiranje i tehnički SEO' },
+  { id: 'int-11', name: 'Google Ads', category: 'Marketing', status: 'disconnected', icon: TrendingUp, iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', description: 'Google Ads API — upravljanje kampanjama, ključnim riječima i budžetima' },
+  { id: 'int-12', name: 'Google Analytics', category: 'Marketing', status: 'disconnected', icon: BarChart3, iconColor: 'text-orange-400', iconBg: 'bg-orange-500/20', description: 'Google Analytics 4 — promet, konverzije, atribucija i ponašanje korisnika' },
+  { id: 'int-13', name: 'Google Search Console', category: 'Marketing', status: 'disconnected', icon: Search, iconColor: 'text-brand-blue-400', iconBg: 'bg-brand-blue-500/20', description: 'Search Console API — pozicije ključnih riječi, CTR, indeksiranje i tehnički SEO' },
 
   // SEO
-  { id: 'int-14', name: 'Ahrefs', category: 'SEO', status: 'connected', icon: Search, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/20', lastSync: 'Prije 2 sata', description: 'Ahrefs API — backlink profil, analiza konkurencije, keyword research i rank tracking' },
-  { id: 'int-15', name: 'Semrush', category: 'SEO', status: 'disconnected', icon: TrendingUp, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', lastSync: undefined, description: 'Semrush API — SEO audit, pozicije, promet konkurencije i content gap analiza' },
-  { id: 'int-16', name: 'Moz', category: 'SEO', status: 'disconnected', icon: BarChart3, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', lastSync: undefined, description: 'Moz API — DA/PA metrike, spam score, link building prilike i lokalni SEO' },
+  { id: 'int-14', name: 'Ahrefs', category: 'SEO', status: 'disconnected', icon: Search, iconColor: 'text-blue-400', iconBg: 'bg-blue-500/20', description: 'Ahrefs API — backlink profil, analiza konkurencije, keyword research i rank tracking' },
+  { id: 'int-15', name: 'Semrush', category: 'SEO', status: 'disconnected', icon: TrendingUp, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', description: 'Semrush API — SEO audit, pozicije, promet konkurencije i content gap analiza' },
+  { id: 'int-16', name: 'Moz', category: 'SEO', status: 'disconnected', icon: BarChart3, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', description: 'Moz API — DA/PA metrike, spam score, link building prilike i lokalni SEO' },
 
   // Automatizacija
-  { id: 'int-17', name: 'Make.com', category: 'Automatizacija', status: 'connected', icon: Workflow, iconColor: 'text-purple-400', iconBg: 'bg-purple-500/20', lastSync: 'Prije 15 minuta', description: 'Make (Integromat) — vizualna automatizacija s 1500+ konektora za napredne scenarije' },
-  { id: 'int-18', name: 'n8n', category: 'Automatizacija', status: 'disconnected', icon: Layers, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', lastSync: undefined, description: 'n8n — open-source automatizacija s vlastitim hostingom i prilagodljivim nodovima' },
-  { id: 'int-19', name: 'Zapier', category: 'Automatizacija', status: 'disconnected', icon: Zap, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', lastSync: undefined, description: 'Zapier — 5000+ aplikacija, trigeri i akcije za automatizaciju bez koda' },
+  { id: 'int-17', name: 'Make.com', category: 'Automatizacija', status: 'disconnected', icon: Workflow, iconColor: 'text-purple-400', iconBg: 'bg-purple-500/20', description: 'Make (Integromat) — vizualna automatizacija s 1500+ konektora za napredne scenarije' },
+  { id: 'int-18', name: 'n8n', category: 'Automatizacija', status: 'disconnected', icon: Layers, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', description: 'n8n — open-source automatizacija s vlastitim hostingom i prilagodljivim nodovima' },
+  { id: 'int-19', name: 'Zapier', category: 'Automatizacija', status: 'disconnected', icon: Zap, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', description: 'Zapier — 5000+ aplikacija, trigeri i akcije za automatizaciju bez koda' },
 
   // Pohrana
-  { id: 'int-20', name: 'Google Drive', category: 'Pohrana', status: 'connected', icon: Cloud, iconColor: 'text-yellow-400', iconBg: 'bg-yellow-500/20', lastSync: 'Prije 1 sat', description: 'Google Drive API — spremanje izvještaja, kreativa, export podataka u Sheets' },
-  { id: 'int-21', name: 'Dropbox', category: 'Pohrana', status: 'disconnected', icon: Database, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', lastSync: undefined, description: 'Dropbox API — cloud pohrana za velike datoteke, kreative i video materijale' },
-  { id: 'int-22', name: 'Cloudinary', category: 'Pohrana', status: 'connected', icon: Camera, iconColor: 'text-sky-400', iconBg: 'bg-sky-500/20', lastSync: 'Prije 3 sata', description: 'Cloudinary API — optimizacija slika i videa, transformacije i CDN dostava' },
+  { id: 'int-20', name: 'Google Drive', category: 'Pohrana', status: 'disconnected', icon: Cloud, iconColor: 'text-yellow-400', iconBg: 'bg-yellow-500/20', description: 'Google Drive API — spremanje izvještaja, kreativa, export podataka u Sheets' },
+  { id: 'int-21', name: 'Dropbox', category: 'Pohrana', status: 'disconnected', icon: Database, iconColor: 'text-zinc-400', iconBg: 'bg-zinc-500/20', description: 'Dropbox API — cloud pohrana za velike datoteke, kreative i video materijale' },
+  { id: 'int-22', name: 'Cloudinary', category: 'Pohrana', status: 'disconnected', icon: Camera, iconColor: 'text-sky-400', iconBg: 'bg-sky-500/20', description: 'Cloudinary API — optimizacija slika i videa, transformacije i CDN dostava' },
 
   // Komunikacija
-  { id: 'int-23', name: 'Telegram Bot', category: 'Komunikacija', status: 'connected', icon: Send, iconColor: 'text-sky-400', iconBg: 'bg-sky-500/20', lastSync: 'Prije 1 minute', description: 'Telegram Bot API — instant obavijesti o leadovima, kampanjama, greškama i izvještajima' },
-  { id: 'int-24', name: 'Email', category: 'Komunikacija', status: 'connected', icon: Mail, iconColor: 'text-brand-purple-400', iconBg: 'bg-brand-purple-500/20', lastSync: 'Prije 1 minute', description: 'SMTP/Email API — automatski emailovi, newsletteri, follow-up sekvence i izvještaji' },
+  { id: 'int-23', name: 'Telegram Bot', category: 'Komunikacija', status: 'disconnected', icon: Send, iconColor: 'text-sky-400', iconBg: 'bg-sky-500/20', description: 'Telegram Bot API — instant obavijesti o leadovima, kampanjama, greškama i izvještajima' },
+  { id: 'int-24', name: 'Email', category: 'Komunikacija', status: 'disconnected', icon: Mail, iconColor: 'text-brand-purple-400', iconBg: 'bg-brand-purple-500/20', description: 'SMTP/Email API — automatski emailovi, newsletteri, follow-up sekvence i izvještaji' },
 ];
 
 // ── Component ──
@@ -89,7 +91,7 @@ export default function Integrations() {
     setIntegrationStates((prev) =>
       prev.map((int) =>
         int.id === id
-          ? { ...int, status: 'connected' as const, lastSync: 'Upravo povezano' }
+          ? { ...int, status: 'connected' as const }
           : int
       )
     );
@@ -99,7 +101,7 @@ export default function Integrations() {
     setIntegrationStates((prev) =>
       prev.map((int) =>
         int.id === id
-          ? { ...int, status: 'disconnected' as const, lastSync: undefined }
+          ? { ...int, status: 'disconnected' as const }
           : int
       )
     );
@@ -137,7 +139,7 @@ export default function Integrations() {
           </div>
           <p className="text-2xl font-bold text-emerald-400">{connectedCount}</p>
           <p className="text-xs text-zinc-500 mt-1">
-            {((connectedCount / integrationStates.length) * 100).toFixed(0)}% od ukupnog broja
+            {connectedCount === 0 ? 'Ništa nije povezano' : `${((connectedCount / integrationStates.length) * 100).toFixed(0)}% od ukupnog broja`}
           </p>
         </GlassCard>
 
@@ -159,8 +161,8 @@ export default function Integrations() {
             </div>
             <span className="text-sm text-zinc-400">Posljednja sinkronizacija</span>
           </div>
-          <p className="text-lg font-bold text-white">Prije 1 min</p>
-          <p className="text-xs text-zinc-500 mt-1">Google Ads & Analytics</p>
+          <p className="text-lg font-bold text-zinc-500">Nije dostupno</p>
+          <p className="text-xs text-zinc-500 mt-1">Nema povezanih integracija</p>
         </GlassCard>
       </div>
 
