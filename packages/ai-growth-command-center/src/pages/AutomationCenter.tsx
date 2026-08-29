@@ -14,7 +14,7 @@ interface AutomationWorkflow {
   trigger: string;
   status: 'active' | 'paused';
   icon: typeof Zap;
-  lastRun: string;
+  lastRun: string | null;
   iconColor: string;
   iconBg: string;
 }
@@ -29,6 +29,8 @@ interface ActivityLogEntry {
 }
 
 // ── 6 Workflow definitions ──
+// Dijelovi su DEFINICIJE automatizacija (naziv, opis, okidač, status konfiguracije).
+// lastRun je null jer nijedna automatizacija još nije stvarno izvršena.
 const workflows: AutomationWorkflow[] = [
   {
     id: 'wf-1',
@@ -37,7 +39,7 @@ const workflows: AutomationWorkflow[] = [
     trigger: 'Svako jutro u 08:00',
     status: 'active',
     icon: Sparkles,
-    lastRun: 'Danas u 08:02',
+    lastRun: null,
     iconColor: 'text-brand-purple-400',
     iconBg: 'bg-brand-purple-500/20',
   },
@@ -48,7 +50,7 @@ const workflows: AutomationWorkflow[] = [
     trigger: 'Novi trend (real-time monitoring)',
     status: 'active',
     icon: TrendingUp,
-    lastRun: 'Prije 45 minuta',
+    lastRun: null,
     iconColor: 'text-emerald-400',
     iconBg: 'bg-emerald-500/20',
   },
@@ -59,7 +61,7 @@ const workflows: AutomationWorkflow[] = [
     trigger: 'Novi lead otkriven',
     status: 'active',
     icon: Target,
-    lastRun: 'Prije 2 sata',
+    lastRun: null,
     iconColor: 'text-brand-blue-400',
     iconBg: 'bg-brand-blue-500/20',
   },
@@ -70,7 +72,7 @@ const workflows: AutomationWorkflow[] = [
     trigger: 'Otkrivena prilika na tržištu',
     status: 'paused',
     icon: Megaphone,
-    lastRun: 'Prije 3 dana',
+    lastRun: null,
     iconColor: 'text-amber-400',
     iconBg: 'bg-amber-500/20',
   },
@@ -81,7 +83,7 @@ const workflows: AutomationWorkflow[] = [
     trigger: 'Slaba izvedba kampanje (ROAS < 1.5)',
     status: 'active',
     icon: Settings2,
-    lastRun: 'Prije 1 sat',
+    lastRun: null,
     iconColor: 'text-rose-400',
     iconBg: 'bg-rose-500/20',
   },
@@ -92,23 +94,14 @@ const workflows: AutomationWorkflow[] = [
     trigger: 'Svaki petak u 17:00',
     status: 'active',
     icon: FileText,
-    lastRun: 'Prošli petak u 17:05',
+    lastRun: null,
     iconColor: 'text-cyan-400',
     iconBg: 'bg-cyan-500/20',
   },
 ];
 
-// ── Activity log entries ──
-const activityLog: ActivityLogEntry[] = [
-  { id: 'al-1', workflowName: 'Jutarnji briefing', status: 'success', message: 'Dnevni plan kreiran — 5 prioriteta za danas, 3 preporuke za optimizaciju', timestamp: 'Danas, 08:02', trajanje: '42s' },
-  { id: 'al-2', workflowName: 'Detekcija trendova', status: 'success', message: 'Otkriven trend: "AI za male poduzetnike" — poslan Agentu za Strategiju Sadržaja', timestamp: 'Danas, 07:15', trajanje: '18s' },
-  { id: 'al-3', workflowName: 'Optimizacija kampanje', status: 'warning', message: 'Google Ads "Search – Generički" ROAS pao na 1.3x — plan poboljšanja poslan', timestamp: 'Danas, 06:50', trajanje: '1m 12s' },
-  { id: 'al-4', workflowName: 'Novo: Lead obavijest', status: 'success', message: 'Novi lead "Marko Horvat" (TechSolutions) dodat u CRM — obavijest poslana', timestamp: 'Danas, 05:30', trajanje: '8s' },
-  { id: 'al-5', workflowName: 'Jutarnji briefing', status: 'success', message: 'Dnevni plan kreiran — 4 prioriteta, detektirana prilika za Instagram kampanju', timestamp: 'Jučer, 08:01', trajanje: '38s' },
-  { id: 'al-6', workflowName: 'Detekcija trendova', status: 'error', message: 'API timeout kod dohvata trendova s Reddita — ponovni pokušaj uspješan nakon 3 minute', timestamp: 'Jučer, 14:22', trajanje: '3m 45s' },
-  { id: 'al-7', workflowName: 'Optimizacija kampanje', status: 'success', message: 'Facebook "Lead Gen – B2B" — smanjen CPA za 22% nakon prilagodbe publike', timestamp: 'Jučer, 11:40', trajanje: '56s' },
-  { id: 'al-8', workflowName: 'Tjedni izvještaj', status: 'success', message: 'Tjedni izvještaj generiran i poslan na 3 email adrese — 24 stranice, 12 grafikona', timestamp: 'Prošli petak, 17:05', trajanje: '2m 18s' },
-];
+// ── Activity log entries (prazno — nijedna automatizacija još nije izvršena) ──
+const activityLog: ActivityLogEntry[] = [];
 
 // ── Status config ──
 const statusIconMap: Record<string, typeof CheckCircle2> = {
@@ -129,11 +122,6 @@ const statusTextMap: Record<string, string> = {
   error: 'Greška',
 };
 
-// ── Helper ──
-function formatRelativeTime(lastRun: string): string {
-  return lastRun;
-}
-
 // ── Component ──
 export default function AutomationCenter() {
   const [workflowStates, setWorkflowStates] = useState(workflows.map((w) => ({ ...w })));
@@ -147,24 +135,14 @@ export default function AutomationCenter() {
   }
 
   function triggerManual(id: string) {
+    // Bez stvarnog izvršavanja ne izmišljamo vrijeme završetka — ostaje iskreno prazno.
     setWorkflowStates((prev) =>
-      prev.map((w) =>
-        w.id === id ? { ...w, lastRun: 'Upravo pokrenuto...' } : w
-      )
+      prev.map((w) => (w.id === id ? { ...w, lastRun: null } : w))
     );
-    setTimeout(() => {
-      setWorkflowStates((prev) =>
-        prev.map((w) =>
-          w.id === id && w.lastRun === 'Upravo pokrenuto...'
-            ? { ...w, lastRun: 'Prije nekoliko sekundi' }
-            : w
-        )
-      );
-    }, 2000);
   }
 
   const activeCount = workflowStates.filter((w) => w.status === 'active').length;
-  const todayTasks = activityLog.filter((a) => a.timestamp.startsWith('Danas')).length;
+  const todayTasks = activityLog.length;
 
   return (
     <div className="space-y-6 pb-8">
@@ -192,11 +170,11 @@ export default function AutomationCenter() {
             <div className="w-8 h-8 rounded-lg bg-brand-blue-500/20 flex items-center justify-center">
               <Timer className="w-4 h-4 text-brand-blue-400" />
             </div>
-            <span className="text-sm text-zinc-400">Zadataka danas</span>
+            <span className="text-sm text-zinc-400">Zadataka izvršeno</span>
           </div>
           <p className="text-2xl font-bold text-white">{todayTasks}</p>
-          <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
-            <ArrowUpRight className="w-3 h-3" /> 100% uspješnost
+          <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
+            <ArrowUpRight className="w-3 h-3 text-zinc-600" /> Nema izvršenih zadataka
           </p>
         </GlassCard>
 
@@ -207,8 +185,8 @@ export default function AutomationCenter() {
             </div>
             <span className="text-sm text-zinc-400">Uspješnost</span>
           </div>
-          <p className="text-2xl font-bold text-white">96.8%</p>
-          <p className="text-xs text-zinc-500 mt-1">Zadnjih 30 dana</p>
+          <p className="text-2xl font-bold text-white">—</p>
+          <p className="text-xs text-zinc-500 mt-1">Nema podataka</p>
         </GlassCard>
       </div>
 
@@ -274,7 +252,7 @@ export default function AutomationCenter() {
                 <div className="flex items-center gap-2 mb-4 text-xs text-zinc-500">
                   <Clock className="w-3.5 h-3.5" />
                   <span>Zadnje izvršavanje: </span>
-                  <span className="text-zinc-400 font-medium">{wf.lastRun}</span>
+                  <span className="text-zinc-400 font-medium">{wf.lastRun ?? 'Još nije pokrenut'}</span>
                 </div>
 
                 {/* Action button */}
@@ -341,6 +319,14 @@ export default function AutomationCenter() {
               })}
             </tbody>
           </table>
+          {activityLog.length === 0 && (
+            <div className="p-10 text-center">
+              <p className="text-sm text-zinc-400">Još nema aktivnosti.</p>
+              <p className="text-xs text-zinc-500 mt-1">
+                Dnevnik izvršavanja se puni tek kada automatizacije stvarno izvrše zadatke.
+              </p>
+            </div>
+          )}
         </div>
       </GlassCard>
 

@@ -5,7 +5,7 @@ import {
   Settings, Globe, Key, Clock, ShieldCheck,
   Save, Zap, Mail, Send, Eye, EyeOff, AlertCircle,
   CheckCircle2, ArrowUpRight, ChevronDown, Smartphone,
-  LogIn, Trash2, RefreshCw,
+  Target, LogIn, Trash2, RefreshCw,
 } from 'lucide-react';
 
 // ── Types ──
@@ -46,26 +46,11 @@ const tabs: { key: SettingsTab; label: string; icon: typeof Settings }[] = [
 ];
 
 // ── Data ──
-const apiKeys: ApiKey[] = [
-  { id: 'key-1', name: 'Produkcijski API ključ', prefix: 'b44_prod_', created: '15.01.2026.', lastUsed: 'Prije 2 minute', masked: true },
-  { id: 'key-2', name: 'Razvojni API ključ', prefix: 'b44_dev_', created: '03.03.2026.', lastUsed: 'Prije 3 dana', masked: true },
-  { id: 'key-3', name: 'Testni API ključ', prefix: 'b44_test_', created: '20.06.2026.', lastUsed: 'Nikad', masked: true },
-];
+const apiKeys: ApiKey[] = [];
 
-const securityEvents: SecurityEvent[] = [
-  { action: 'Uspješna prijava', detail: 'Prijava s IP adrese 93.141.xxx.xxx (Zagreb, HR)', timestamp: 'Danas, 08:12', ip: '93.141.xxx.xxx', icon: LogIn, iconColor: 'text-emerald-400' },
-  { action: 'API ključ kreiran', detail: 'Novi API ključ "Produkcijski" generiran', timestamp: '15.01.2026., 14:30', ip: '93.141.xxx.xxx', icon: Key, iconColor: 'text-brand-blue-400' },
-  { action: 'Promjena postavki', detail: 'AI model promijenjen s GPT-4o-mini na GPT-4o', timestamp: '10.06.2026., 11:45', ip: '93.141.xxx.xxx', icon: Settings, iconColor: 'text-amber-400' },
-  { action: 'Nova sesija', detail: 'Prijava s novog uređaja — MacBook Pro, Chrome 126', timestamp: '05.07.2026., 09:20', ip: '78.2.xxx.xxx', icon: Smartphone, iconColor: 'text-brand-purple-400' },
-  { action: 'Neuspješna prijava', detail: '3 neuspješna pokušaja prijave — korisnik blokiran na 15 min', timestamp: '02.07.2026., 22:15', ip: '185.220.xxx.xxx', icon: AlertCircle, iconColor: 'text-red-400' },
-];
+const securityEvents: SecurityEvent[] = [];
 
-const billingHistory: BillingEntry[] = [
-  { datum: '01.07.2026.', opis: 'Base44 Professional — Mjesečna pretplata', iznos: '€99.00', status: 'Plaćeno' },
-  { datum: '01.06.2026.', opis: 'Base44 Professional — Mjesečna pretplata', iznos: '€99.00', status: 'Plaćeno' },
-  { datum: '01.05.2026.', opis: 'Base44 Professional — Mjesečna pretplata', iznos: '€99.00', status: 'Plaćeno' },
-  { datum: '15.05.2026.', opis: 'Dodatni agenti — Proširenje paketa (+5 agenta)', iznos: '€49.00', status: 'Plaćeno' },
-];
+const billingHistory: BillingEntry[] = [];
 
 // ── Component ──
 export default function SettingsPage() {
@@ -74,8 +59,8 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
 
   // Profile form state
-  const [orgName, setOrgName] = useState('AI Growth d.o.o.');
-  const [email, setEmail] = useState('info@aigrowth.hr');
+  const [orgName, setOrgName] = useState('');
+  const [email, setEmail] = useState('');
   const [language, setLanguage] = useState('hr');
   const [timezone, setTimezone] = useState('Europe/Zagreb');
 
@@ -88,14 +73,14 @@ export default function SettingsPage() {
 
   // Security settings
   const [sessionTimeout, setSessionTimeout] = useState(30);
-  const [twoFA, setTwoFA] = useState(true);
+  const [twoFA, setTwoFA] = useState(false);
 
   // Notification settings
   const [notifyNewLead, setNotifyNewLead] = useState(true);
   const [notifyCampaignEnd, setNotifyCampaignEnd] = useState(true);
   const [notifyWeeklyReport, setNotifyWeeklyReport] = useState(true);
   const [notifyAgentError, setNotifyAgentError] = useState(true);
-  const [notifyTelegram, setNotifyTelegram] = useState(true);
+  const [notifyTelegram, setNotifyTelegram] = useState(false);
   const [notifyInApp, setNotifyInApp] = useState(true);
 
   function handleSave() {
@@ -172,19 +157,19 @@ export default function SettingsPage() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between py-2 border-b border-white/5">
                   <span className="text-zinc-400">ID organizacije</span>
-                  <span className="text-white font-mono bg-white/5 px-2 py-0.5 rounded">org_a1b2c3d4</span>
+                  <span className="text-white font-mono bg-white/5 px-2 py-0.5 rounded">—</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-white/5">
                   <span className="text-zinc-400">Plan</span>
-                  <span className="text-white bg-gradient-to-r from-brand-purple-500 to-brand-blue-500 bg-clip-text text-transparent font-medium">Professional</span>
+                  <span className="text-white bg-gradient-to-r from-brand-purple-500 to-brand-blue-500 bg-clip-text text-transparent font-medium">—</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-white/5">
                   <span className="text-zinc-400">Kreirano</span>
-                  <span className="text-white">15. siječnja 2026.</span>
+                  <span className="text-white">—</span>
                 </div>
                 <div className="flex justify-between py-2">
                   <span className="text-zinc-400">Članova tima</span>
-                  <span className="text-white">3 / 5</span>
+                  <span className="text-white">0 / 5</span>
                 </div>
               </div>
             </GlassCard>
@@ -298,9 +283,9 @@ export default function SettingsPage() {
               <h2 className="text-lg font-semibold text-white mb-4">Ograničenja i kvote</h2>
               <div className="space-y-3">
                 {[
-                  { label: 'Mjesečni API pozivi', used: 8420, total: 10000, color: 'bg-brand-purple-500' },
-                  { label: 'Dnevni limit tokena', used: 185000, total: 250000, color: 'bg-brand-blue-500' },
-                  { label: 'Istovremeni agenti', used: 18, total: 24, color: 'bg-emerald-500' },
+                  { label: 'Mjesečni API pozivi', used: 0, total: 10000, color: 'bg-brand-purple-500' },
+                  { label: 'Dnevni limit tokena', used: 0, total: 250000, color: 'bg-brand-blue-500' },
+                  { label: 'Istovremeni agenti', used: 0, total: 24, color: 'bg-emerald-500' },
                 ].map((quota, i) => (
                   <div key={i}>
                     <div className="flex justify-between text-sm mb-1.5">
@@ -337,7 +322,12 @@ export default function SettingsPage() {
             <GlassCard>
               <h2 className="text-lg font-semibold text-white mb-4">API ključevi</h2>
               <div className="space-y-2">
-                {apiKeys.map((key) => (
+                {apiKeys.length === 0 ? (
+                  <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-zinc-500">
+                    Nije postavljeno — još nema API ključeva.
+                  </div>
+                ) : (
+                apiKeys.map((key) => (
                   <div
                     key={key.id}
                     className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]"
@@ -371,7 +361,8 @@ export default function SettingsPage() {
                       </button>
                     </div>
                   </div>
-                ))}
+                ))
+                )}
               </div>
               <button className="mt-3 flex items-center gap-2 text-xs text-brand-purple-400 hover:text-brand-purple-300 transition-colors">
                 <Key className="w-3.5 h-3.5" />
@@ -432,7 +423,10 @@ export default function SettingsPage() {
                 <h2 className="text-lg font-semibold text-white">Zadnje aktivnosti</h2>
               </div>
               <div className="divide-y divide-white/5">
-                {securityEvents.map((event, i) => {
+                {securityEvents.length === 0 ? (
+                  <div className="p-6 text-sm text-zinc-500">Nema zabilježenih aktivnosti.</div>
+                ) : (
+                securityEvents.map((event, i) => {
                   const Icon = event.icon;
                   return (
                     <div key={i} className="flex items-start gap-3 p-4 hover:bg-white/[0.03] transition-colors">
@@ -449,7 +443,8 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   );
-                })}
+                })
+                )}
               </div>
             </GlassCard>
 
@@ -473,12 +468,12 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h2 className="text-lg font-semibold text-white">Trenutni plan</h2>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-brand-purple-500/20 text-brand-purple-400 mt-2">
-                      <Zap className="w-3 h-3" /> Professional
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-500/20 text-zinc-400 mt-2">
+                      <Zap className="w-3 h-3" /> Bez aktivne pretplate
                     </span>
                   </div>
                   <p className="text-3xl font-bold text-white">
-                    €99<span className="text-sm font-normal text-zinc-400">/mj</span>
+                    —<span className="text-sm font-normal text-zinc-400">/mj</span>
                   </p>
                 </div>
 
@@ -513,9 +508,9 @@ export default function SettingsPage() {
                   <Bot className="w-4 h-4 text-brand-purple-400" />
                   <span className="text-sm text-zinc-400">Agenti korišteni</span>
                 </div>
-                <p className="text-2xl font-bold text-white">18 / 24</p>
+                <p className="text-2xl font-bold text-white">0 / 24</p>
                 <div className="w-full h-1.5 bg-white/5 rounded-full mt-2 overflow-hidden">
-                  <div className="h-full bg-brand-purple-500 rounded-full" style={{ width: '75%' }} />
+                  <div className="h-full bg-brand-purple-500 rounded-full" style={{ width: '0%' }} />
                 </div>
               </GlassCard>
 
@@ -524,7 +519,7 @@ export default function SettingsPage() {
                   <Zap className="w-4 h-4 text-amber-400" />
                   <span className="text-sm text-zinc-400">Kampanje aktivne</span>
                 </div>
-                <p className="text-2xl font-bold text-white">12</p>
+                <p className="text-2xl font-bold text-white">0</p>
                 <p className="text-xs text-zinc-500 mt-1">od neograničeno</p>
               </GlassCard>
 
@@ -533,8 +528,8 @@ export default function SettingsPage() {
                   <Target className="w-4 h-4 text-emerald-400" />
                   <span className="text-sm text-zinc-400">Leadovi generirani</span>
                 </div>
-                <p className="text-2xl font-bold text-white">1,247</p>
-                <p className="text-xs text-emerald-400 mt-1">↑ 89 ovaj tjedan</p>
+                <p className="text-2xl font-bold text-white">0</p>
+                <p className="text-xs text-zinc-500 mt-1">još nema generiranih leadova</p>
               </GlassCard>
             </div>
 
@@ -553,7 +548,14 @@ export default function SettingsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {billingHistory.map((entry, i) => (
+                    {billingHistory.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="py-6 px-4 text-center text-sm text-zinc-500">
+                          Nema zapisa o naplati.
+                        </td>
+                      </tr>
+                    ) : (
+                    billingHistory.map((entry, i) => (
                       <tr key={i} className="hover:bg-white/[0.03] transition-colors">
                         <td className="py-3 px-4">
                           <span className="text-zinc-400 text-sm">{entry.datum}</span>
@@ -576,7 +578,8 @@ export default function SettingsPage() {
                           </span>
                         </td>
                       </tr>
-                    ))}
+                    ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -640,10 +643,10 @@ export default function SettingsPage() {
                     />
                   </button>
                 </div>
-                {notifyTelegram && (
-                  <div className="mt-3 p-3 rounded-lg bg-sky-500/10 text-xs text-sky-400 flex items-center gap-2">
+                {!notifyTelegram && (
+                  <div className="mt-3 p-3 rounded-lg bg-zinc-500/10 text-xs text-zinc-400 flex items-center gap-2">
                     <Send className="w-4 h-4 flex-shrink-0" />
-                    Povezano s @Base44Bot — Chat ID: 123456789
+                    Nije povezano — Telegram bot još nije povezan
                   </div>
                 )}
               </GlassCard>

@@ -116,109 +116,17 @@ const capabilitiesByCategory: Record<string, string[]> = {
   ],
 };
 
-// ── Simulated agent metrics ──
-function getAgentMetrics(agent: AgentDefinition) {
-  // Deterministic but varied metrics based on agent id
-  const hash = agent.id.split('-').reduce((acc, s) => acc + (parseInt(s) || 0), 0);
-  const taskCount = 12 + (hash * 7) % 60;
-  const successRate = 85 + (hash % 14);
-  const lastRun = new Date(Date.now() - ((hash * 13) % 1440) * 60 * 1000);
-
-  const times = ['Prije 3 minute', 'Prije 12 minuta', 'Prije 47 minuta', 'Prije 1 sat', 'Prije 2 sata', 'Prije 3 sata', 'Prije 5 sati', 'Prije 8 sati', 'Prije 11 sati', 'Prije 1 dan'];
-  const lastRunStr = agent.status === 'active' ? times[hash % times.length] : times[(hash + 5) % times.length];
-
-  return { taskCount, successRate, lastRunStr };
-}
-
-// ── Simulated activity log ──
-const activityLogTemplates: Record<string, string[]> = {
-  'Upravljanje': [
-    'Analizirao tržišne trendove za Q3 strategiju',
-    'Koordinirao tjedni sastanak agenata',
-    'Optimizirao raspodjelu budžeta po kanalima',
-    'Pregledao ROI izvještaj za protekli mjesec',
-    'Donio odluku o povećanju budžeta za Google Ads',
-    'Ažurirao marketinšku strategiju na temelju novih podataka',
-  ],
-  'Kampanje': [
-    'Analizirao Facebook kampanju #12',
-    'Pokrenuo A/B test za kampanju #8',
-    'Optimizirao targeting za Google Ads kampanju',
-    'Otkrio novu priliku za kampanju u niši',
-    'Generirao izvještaj performansi kampanja',
-  ],
-  'Sadržaj': [
-    'Generirao sadržaj za Instagram objave',
-    'Napisao skriptu za YouTube video',
-    'Planirao seriju TikTok videa za sljedeći tjedan',
-    'Optimizirao blog članak za SEO',
-    'Kreirao strategiju sadržaja za novu kampanju',
-  ],
-  'Društvene mreže': [
-    'Objavio post na Facebook stranici',
-    'Analizirao angažman na Instagram Reels',
-    'Pratio konkurenciju na X platformi',
-    'Odgovorio na komentare na Redditu',
-    'Optimizirao vrijeme objave za maksimalni doseg',
-  ],
-  'Oglašavanje': [
-    'Optimizirao Google Ads kampanju #5',
-    'Istražio nove ključne riječi za Search kampanju',
-    'Analizirao konkurentske Google Ads oglase',
-    'Prilagodio budžet za Display kampanju',
-    'Pokrenuo novi set oglasa za Shopping kampanju',
-  ],
-  'SEO': [
-    'Istraživanje ključnih riječi za SEO',
-    'Analizirao profil backlinkova konkurencije',
-    'Optimizirao meta tagove za 12 stranica',
-    'Pronašao 8 novih backlink prilika',
-    'Popravio tehničke SEO probleme na webu',
-  ],
-  'Leadovi': [
-    'Kvalificirao 23 nova leada',
-    'Poslao follow-up email za 15 leadova',
-    'Segmentirao bazu leadova po interesima',
-    'Analizirao konverzijski funnel',
-    'Sinkronizirao leadove s CRM sustavom',
-  ],
-  'Analitika': [
-    'Generirao tjedni izvještaj performansi',
-    'Detektirao anomaliju u podacima kampanje #3',
-    'Kreirao vizualizaciju dosega po platformama',
-    'Analizirao trend konverzija za protekli mjesec',
-    'Poslao dnevni izvještaj na email',
-  ],
-  'Automatizacija': [
-    'Automatizirao objavu sadržaja za cijeli tjedan',
-    'Pokrenuo workflow za novu kampanju',
-    'Poslao notifikaciju o novim leadovima',
-    'Integrirao novi API endpoint',
-    'Izrada tjednog izvještaja u PDF formatu',
-  ],
-};
-
-function generateActivityLog(agent: AgentDefinition, count: number) {
-  const templates = activityLogTemplates[agent.category] || activityLogTemplates['Upravljanje'];
-  const minutes = [3, 12, 35, 60, 125, 180, 240, 420, 540, 720];
-  return Array.from({ length: Math.min(count, templates.length) }, (_, i) => ({
-    action: templates[i % templates.length],
-    time: minutes[i] < 60 ? `Prije ${minutes[i]} min` : `Prije ${Math.floor(minutes[i] / 60)}h`,
-    timestamp: new Date(Date.now() - minutes[i] * 60 * 1000).toISOString(),
-  }));
-}
-
 // ── Task queue data ──
-const taskQueueData = [
-  { id: 't1', agentId: 'agent-02', agentName: 'Agent za Otkrivanje Kampanja', task: 'Analiza tržišnih trendova za Q4', status: 'in-progress' as const, priority: 'Visok', time: 'U tijeku 8 min' },
-  { id: 't2', agentId: 'agent-07', agentName: 'Facebook Marketing Stručnjak', task: 'Optimizacija oglasa za kampanju #15', status: 'pending' as const, priority: 'Visok', time: 'Na čekanju' },
-  { id: 't3', agentId: 'agent-17', agentName: 'SEO Stručnjak', task: 'Istraživanje ključnih riječi za blog', status: 'pending' as const, priority: 'Srednji', time: 'Na čekanju' },
-  { id: 't4', agentId: 'agent-20', agentName: 'Lovac na Leadove', task: 'Kvalifikacija novih leadova s LinkedIna', status: 'in-progress' as const, priority: 'Visok', time: 'U tijeku 3 min' },
-  { id: 't5', agentId: 'agent-05', agentName: 'Agent za Pisanje Skripti', task: 'Generiranje sadržaja za Instagram Reels', status: 'pending' as const, priority: 'Srednji', time: 'Na čekanju' },
-  { id: 't6', agentId: 'agent-23', agentName: 'Agent za Automatizaciju', task: 'Izrada tjednog izvještaja za klijenta', status: 'completed' as const, priority: 'Nizak', time: 'Završeno prije 12 min' },
-  { id: 't7', agentId: 'agent-21', agentName: 'Agent za Analitiku', task: 'Analiza performansi Google Ads kampanja', status: 'completed' as const, priority: 'Visok', time: 'Završeno prije 45 min' },
-  { id: 't8', agentId: 'agent-09', agentName: 'Instagram Marketing Stručnjak', task: 'Praćenje konkurencije na Instagramu', status: 'pending' as const, priority: 'Nizak', time: 'Na čekanju' },
-];
+// Prazno — nijedan agent još nije stvarno izvršio zadatak.
+const taskQueueData: {
+  id: string;
+  agentId: string;
+  agentName: string;
+  task: string;
+  status: 'pending' | 'in-progress' | 'completed';
+  priority: string;
+  time: string;
+}[] = [];
 
 const taskStatusConfig = {
   'pending':     { label: 'Na čekanju', icon: Clock,       cls: 'text-amber-400 bg-amber-400/10' },
@@ -472,6 +380,13 @@ export default function AIAgents() {
                 })}
               </tbody>
             </table>
+            {taskQueueData.length === 0 && (
+              <div className="p-8 text-center">
+                <Clock className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+                <p className="text-sm text-zinc-400">Nema zadataka u redu čekanja.</p>
+                <p className="text-xs text-zinc-500 mt-1">Zadaci se pojavljuju tek kada agente stvarno pokrenete.</p>
+              </div>
+            )}
           </div>
         </GlassCard>
       </section>
@@ -511,7 +426,6 @@ export default function AIAgents() {
 // ── Agent Card ──
 function AgentCard({ agent, onSelect }: { agent: AgentDefinition; onSelect: () => void }) {
   const AgentIcon = getAgentIcon(agent.icon);
-  const metrics = getAgentMetrics(agent);
   const catColor = categoryColors[agent.category] ?? categoryColors['Upravljanje'];
   const stCfg = statusConfig[agent.status];
   const shortDesc = agent.description.split('.')[0] + '.';
@@ -548,29 +462,13 @@ function AgentCard({ agent, onSelect }: { agent: AgentDefinition; onSelect: () =
         {/* Description */}
         <p className="text-xs text-zinc-400 mt-3 line-clamp-2">{shortDesc}</p>
 
-        {/* Performance bar (for active agents) */}
-        {agent.status === 'active' && (
-          <div className="mt-3">
-            <div className="flex items-center justify-between text-[10px] mb-1">
-              <span className="text-zinc-500">Uspješnost</span>
-              <span className="text-emerald-400 font-medium">{metrics.successRate}%</span>
-            </div>
-            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-700"
-                style={{ width: `${metrics.successRate}%` }}
-              />
-            </div>
-          </div>
-        )}
-
         {/* Bottom row */}
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] border ${stCfg.badge}`}>
             {stCfg.label}
           </span>
           <span className="text-[10px] text-zinc-500">
-            {metrics.taskCount} zadataka
+            Još nije pokrenut
           </span>
         </div>
       </div>
@@ -581,11 +479,9 @@ function AgentCard({ agent, onSelect }: { agent: AgentDefinition; onSelect: () =
 // ── Agent Detail Panel ──
 function AgentDetailPanel({ agent, onClose }: { agent: AgentDefinition; onClose: () => void }) {
   const AgentIcon = getAgentIcon(agent.icon);
-  const metrics = getAgentMetrics(agent);
   const catColor = categoryColors[agent.category] ?? categoryColors['Upravljanje'];
   const stCfg = statusConfig[agent.status];
   const caps = capabilitiesByCategory[agent.category] || capabilitiesByCategory['Upravljanje'];
-  const activity = generateActivityLog(agent, 5);
 
   const [localStatus, setLocalStatus] = useState(agent.status);
 
@@ -651,15 +547,15 @@ function AgentDetailPanel({ agent, onClose }: { agent: AgentDefinition; onClose:
       {/* Metrics */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <GlassCard className="!p-3 text-center">
-          <p className="text-lg font-bold text-white">{metrics.taskCount}</p>
+          <p className="text-lg font-bold text-white">—</p>
           <p className="text-[10px] text-zinc-500 mt-0.5">Zadataka</p>
         </GlassCard>
         <GlassCard className="!p-3 text-center">
-          <p className="text-lg font-bold text-emerald-400">{metrics.successRate}%</p>
+          <p className="text-lg font-bold text-white">—</p>
           <p className="text-[10px] text-zinc-500 mt-0.5">Uspješnost</p>
         </GlassCard>
         <GlassCard className="!p-3 text-center">
-          <p className="text-xs font-bold text-zinc-300 truncate">{metrics.lastRunStr}</p>
+          <p className="text-xs font-bold text-zinc-300 truncate">Još nije pokrenut</p>
           <p className="text-[10px] text-zinc-500 mt-0.5">Zadnje izvrš.</p>
         </GlassCard>
       </div>
@@ -690,18 +586,10 @@ function AgentDetailPanel({ agent, onClose }: { agent: AgentDefinition; onClose:
           Log aktivnosti
         </h4>
         <div className="space-y-0">
-          {activity.map((entry, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0"
-            >
-              <div className="w-1.5 h-1.5 rounded-full bg-brand-purple-400/60 flex-shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-zinc-300 truncate">{entry.action}</p>
-              </div>
-              <span className="text-xs text-zinc-500 flex-shrink-0">{entry.time}</span>
-            </div>
-          ))}
+          <div className="text-center py-6">
+            <p className="text-sm text-zinc-400">Još nema aktivnosti.</p>
+            <p className="text-xs text-zinc-500 mt-1">Log se puni tek kada agent stvarno izvrši zadatke.</p>
+          </div>
         </div>
       </div>
     </div>
